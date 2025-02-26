@@ -1,0 +1,9 @@
+# Editor ignores
+.vscode
+
+# Node/TS ignores
+node_modules
+*.tsbuildinfo
+
+# Project ignores
+bin

@@ -1,0 +1,25 @@
+{
+	"name": "sprintest",
+	"version": "0.1.0",
+	"displayName": "Sprintest",
+	"types": "index.d.ts",
+	"bin": {
+		"sprintest": "bin/index.js"
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"watch": "tsc -b --watch"
+	},
+	"devDependencies": {
+		"@types/argparse": "^2.0.17",
+		"@types/node": "^22.13.5",
+		"@types/picomatch": "^3.0.2",
+		"typescript": "^5.7.3"
+	},
+	"dependencies": {
+		"argparse": "^2.0.1",
+		"esbuild": "^0.25.0",
+		"jsonschema": "^1.5.0",
+		"picomatch": "^4.0.2"
+	}
+}

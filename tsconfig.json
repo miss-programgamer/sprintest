@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"rootDir": "source",
+		"outDir": "bin",
+		"strict": true,
+		"target": "ESNext",
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"declaration": true,
+		"tsBuildInfoFile": "bin/source.tsbuildinfo",
+	},
+	"include": [
+		"source/**/*.ts"
+	]
+}
