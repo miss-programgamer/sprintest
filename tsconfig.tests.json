@@ -2,7 +2,13 @@
 	"compilerOptions": {
 		"composite": true,
 		"target": "ESNext",
-		"esModuleInterop": true
+		"module": "NodeNext",
+		"noEmit": true,
+		"esModuleInterop": true,
+		"tsBuildInfoFile": "bin/tests.tsbuildinfo",
+		"types": [
+			"node"
+		]
 	},
 	"include": [
 		"tests/**/*.ts"

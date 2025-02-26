@@ -17,7 +17,8 @@
 	],
 	"scripts": {
 		"build": "tsc -b",
-		"watch": "tsc -b --watch"
+		"watch": "tsc -b --watch",
+		"prepublishOnly": "npm run build"
 	},
 	"devDependencies": {
 		"@types/argparse": "^2.0.17",
