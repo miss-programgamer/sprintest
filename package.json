@@ -2,10 +2,19 @@
 	"name": "sprintest",
 	"version": "0.1.0",
 	"displayName": "Sprintest",
+	"repository": "github:miss-programgamer/sprintest",
+	"keywords": [
+		"test",
+		"testing"
+	],
 	"types": "index.d.ts",
 	"bin": {
 		"sprintest": "bin/index.js"
 	},
+	"files": [
+		"bin/*.js",
+		"index.d.ts"
+	],
 	"scripts": {
 		"build": "tsc -b",
 		"watch": "tsc -b --watch"

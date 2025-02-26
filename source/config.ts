@@ -11,7 +11,7 @@ export function readConfig(config?: string): Promise<[ConfigOptions, string | un
 			if (error == null) {
 				resolve([validateConfig(JSON.parse(buffer.toString()), schema), filename]);
 			} else if (error.code === 'ENOENT' && config == null) {
-				resolve([{ directories: [], matches: [] }, undefined]);
+				resolve([defaultOptions, undefined]);
 			} else {
 				reject(error);
 			}
@@ -22,6 +22,11 @@ export function readConfig(config?: string): Promise<[ConfigOptions, string | un
 export function validateConfig(config: any, schema: Schema): ConfigOptions {
 	return validate(config, schema, { throwAll: true }).instance;
 }
+
+export const defaultOptions: ConfigOptions = {
+	directories: ["src", "source", "test", "tests"],
+	matches: ["**/*.test.js", "**/*.test.ts"],
+};
 
 export interface ConfigOptions {
 	directories: string[];

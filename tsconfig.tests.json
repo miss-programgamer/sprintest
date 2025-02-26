@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"composite": true,
+		"target": "ESNext",
+		"esModuleInterop": true
+	},
+	"include": [
+		"tests/**/*.ts"
+	],
+	"files": [
+		"index.d.ts"
+	]
+}
