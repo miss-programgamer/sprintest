@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import { sep, resolve, dirname } from 'node:path';
-import { join, relative } from 'node:path/posix';
+import { resolve, dirname } from 'node:path';
+import { relative } from 'node:path/posix';
 import { createContext, runInContext } from 'node:vm';
-import { readdir } from 'node:fs/promises';
 import { cwd } from 'node:process';
 
 import { ArgumentParser } from 'argparse';
@@ -17,8 +16,8 @@ import runtime from './runtime';
 async function main(args: Args) {
 	const [config, configFilename] = await readConfig(args.config);
 
-	if (args.verbose && configFilename != null) {
-		console.log(configFilename);
+	if (args.verbose) {
+		console.log(configFilename ?? 'default config:');
 		console.log(indent(JSON.stringify(config, null, '  '), '>>> '));
 		console.log('');
 	}
@@ -34,20 +33,22 @@ async function main(args: Args) {
 		}
 	}
 
-	const files = new Set<string>();
-
 	const onAbsentDir = args.verbose
 		? (path: string) => console.log(`[skip:dir]: ${path}`)
 		: () => undefined;
 
+	const files = new Set<string>();
+
 	for await (const entry of readdirs(configDir, config.directories, onAbsentDir)) {
 		if (entry.isFile()) {
 			const filename = toPosixPath(resolve(entry.parentPath, entry.name));
-			if (isMatch(relative(configDirPosix, filename), config.matches)) {
+			const relativeFilename = relative(configDirPosix, filename);
+
+			if (isMatch(relativeFilename, config.matches)) {
 				files.add(filename);
 
 				if (args.verbose) {
-					console.log(`[match:file]: ${relative(configDirPosix, filename)}`);
+					console.log(`[match:file]: ${relativeFilename}`);
 				}
 			}
 		}
@@ -61,15 +62,15 @@ async function main(args: Args) {
 		outdir: 'out',
 	});
 
+	if (args.verbose) {
+		console.log();
+	}
+
 	const context = createContext(runtime);
 
 	for (const file of result.outputFiles) {
 		runInContext(file.text, context, { filename: file.path });
 	}
-}
-
-function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
-	return error instanceof Error && 'code' in error;
 }
 
 

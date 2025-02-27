@@ -1,17 +1,31 @@
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs';
-import { validate, Schema } from 'jsonschema';
+import { validate, type Schema } from 'jsonschema';
 
 
-export function readConfig(config?: string): Promise<[ConfigOptions, string | undefined]> {
-	const filename = resolve(config ?? 'sprintest.json');
+/**
+ * Reads the contents of a config file at the given path.
+ * @param filename - Optional path to a config file, 'sprintest.json' used if omited.
+ * @returns The config options stored in the file, and its filename if it was found.
+ */
+export function readConfig(filename?: string): Promise<[ConfigOptions, string | undefined]> {
+	const path = resolve(filename ?? 'sprintest.json');
 
 	return new Promise((resolve, reject) => {
-		readFile(filename, (error, buffer) => {
+		readFile(path, (error, buffer) => {
 			if (error == null) {
-				resolve([validateConfig(JSON.parse(buffer.toString()), schema), filename]);
-			} else if (error.code === 'ENOENT' && config == null) {
-				resolve([defaultOptions, undefined]);
+				const config = JSON.parse(buffer.toString());
+				const result = validate(config, schema);
+
+				if (result.valid) {
+					config.directories ??= defaultConfig.directories;
+					config.matches ??= defaultConfig.matches;
+					resolve([config, filename]);
+				} else {
+					reject(result.errors);
+				}
+			} else if (error.code === 'ENOENT' && filename == null) {
+				resolve([defaultConfig, undefined]);
 			} else {
 				reject(error);
 			}
@@ -19,19 +33,15 @@ export function readConfig(config?: string): Promise<[ConfigOptions, string | un
 	});
 }
 
-export function validateConfig(config: any, schema: Schema): ConfigOptions {
-	return validate(config, schema, { throwAll: true }).instance;
-}
-
-export const defaultOptions: ConfigOptions = {
-	directories: ["src", "source", "test", "tests"],
-	matches: ["**/*.test.js", "**/*.test.ts"],
-};
-
 export interface ConfigOptions {
 	directories: string[];
 	matches: string[];
 }
+
+export const defaultConfig: ConfigOptions = {
+	directories: ["src", "source", "test", "tests"],
+	matches: ["**/*.test.js", "**/*.test.ts"],
+};
 
 export const schema: Schema = {
 	type: 'object',
@@ -39,15 +49,12 @@ export const schema: Schema = {
 		'directories': {
 			type: 'array',
 			items: { type: 'string' },
-			default: ['.'],
+			default: defaultConfig.directories,
 		},
 		'matches': {
 			type: 'array',
 			items: { type: 'string' },
-			default: [
-				'*.test.js',
-				'*.test.ts',
-			],
+			default: defaultConfig.matches,
 		},
 	},
 };
