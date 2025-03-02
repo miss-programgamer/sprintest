@@ -8,9 +8,9 @@ It does **not**, however, feature an assertion library, so you'll have to either
 
 # Table of Contents
 
-1. [CLI Usage](#cli-usage)
-2. [API Usage](#api-usage)
-3. [Config File](#config-file)
+- [CLI Usage](#cli-usage)
+- [API Usage](#api-usage)
+- [Config File](#config-file)
 
 # Documentation
 

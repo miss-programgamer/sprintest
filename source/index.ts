@@ -1,77 +1,16 @@
 #!/usr/bin/env node
-import { resolve, dirname } from 'node:path';
+import { sep, resolve, dirname } from 'node:path';
 import { relative } from 'node:path/posix';
-import { createContext, runInContext } from 'node:vm';
+import { runInNewContext } from 'node:vm';
 import { cwd } from 'node:process';
 
 import { ArgumentParser } from 'argparse';
-import { isMatch } from 'picomatch';
+import picomatch from 'picomatch';
 import { build } from 'esbuild';
 
-import { readConfig } from './config';
-import { indent, readdirs, toPosixPath } from './utilities';
-import runtime from './runtime';
-
-
-async function main(args: Args) {
-	const [config, configFilename] = await readConfig(args.config);
-
-	if (args.verbose) {
-		console.log(configFilename ?? 'default config:');
-		console.log(indent(JSON.stringify(config, null, '  '), '>>> '));
-		console.log('');
-	}
-
-	const configDir = configFilename ? dirname(configFilename) : cwd();
-	const configDirPosix = toPosixPath(configDir);
-
-	if (args.verbose) {
-		if (configFilename != null) {
-			console.log(`[config:file]: ${configFilename}`);
-		} else {
-			console.log(`[config:dir]: ${configDir}`);
-		}
-	}
-
-	const onAbsentDir = args.verbose
-		? (path: string) => console.log(`[skip:dir]: ${path}`)
-		: () => undefined;
-
-	const files = new Set<string>();
-
-	for await (const entry of readdirs(configDir, config.directories, onAbsentDir)) {
-		if (entry.isFile()) {
-			const filename = toPosixPath(resolve(entry.parentPath, entry.name));
-			const relativeFilename = relative(configDirPosix, filename);
-
-			if (isMatch(relativeFilename, config.matches)) {
-				files.add(filename);
-
-				if (args.verbose) {
-					console.log(`[match:file]: ${relativeFilename}`);
-				}
-			}
-		}
-	}
-
-	const result = await build({
-		entryPoints: [...files],
-		platform: 'node',
-		bundle: true,
-		write: false,
-		outdir: 'out',
-	});
-
-	if (args.verbose) {
-		console.log();
-	}
-
-	const context = createContext(runtime);
-
-	for (const file of result.outputFiles) {
-		runInContext(file.text, context, { filename: file.path });
-	}
-}
+import { readConfig } from './config.js';
+import { indent, readdirs, toPosixPath } from './utilities.js';
+import createRuntime from './runtime.js';
 
 
 interface Args {
@@ -79,6 +18,7 @@ interface Args {
 	tests: string[];
 	verbose: boolean;
 }
+
 
 const parser = new ArgumentParser({
 	usage: 'sprintest [-c CONFIG]',
@@ -105,4 +45,72 @@ parser.add_argument('-h', '--help', {
 	action: 'help', help: 'show help message, then exit',
 });
 
-main(parser.parse_args() as Args);
+const args: Args = parser.parse_args();
+
+
+const [config, configFilename, spec] = await readConfig(args.config);
+const configDir = spec.filenameFound ? dirname(configFilename) : cwd();
+const configDirPosix = toPosixPath(configDir);
+
+if (args.verbose) {
+	if (spec.filenameFound) {
+		console.log(`[config]: ${configFilename}`);
+	} else {
+		console.log(`[config]: ${configDir}${sep}[default]`);
+	}
+
+	console.log(indent(JSON.stringify(config, null, '  '), '[config]: '));
+	console.log('');
+}
+
+function onAbsentDir(path: string) {
+	if (args.verbose) {
+		console.log(`[skip]: ${path}${sep} (missing)`);
+	} else if (spec.directoriesProvided) {
+		console.warn(`[skip]: ${path}${sep} (missing)`);
+	}
+}
+
+const files = new Set<string>();
+
+for await (const entry of readdirs(configDir, config.directories, onAbsentDir)) {
+	if (entry.isFile()) {
+		const filename = toPosixPath(resolve(entry.parentPath, entry.name));
+		const relativeFilename = relative(configDirPosix, filename);
+
+		if (picomatch.isMatch(relativeFilename, config.matches)) {
+			files.add(filename);
+
+			if (args.verbose) {
+				console.log(`[test]: ${relativeFilename}`);
+			}
+		}
+	}
+}
+
+if (args.verbose) {
+	console.log();
+}
+
+const result = await build({
+	entryPoints: [...files],
+	platform: 'node',
+	packages: 'external',
+	bundle: true,
+	write: false,
+	outbase: '.',
+	outdir: '.',
+});
+
+if (args.verbose) {
+	for (const file of result.outputFiles) {
+		console.log(`[build]: ${file.path}`);
+		console.log(indent(file.text, '[build]: '));
+		console.log();
+	}
+}
+
+for (const file of result.outputFiles) {
+	const runtime = createRuntime(file.path);
+	runInNewContext(file.text, runtime, { filename: file.path });
+}

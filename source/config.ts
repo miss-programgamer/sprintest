@@ -6,9 +6,9 @@ import { validate, type Schema } from 'jsonschema';
 /**
  * Reads the contents of a config file at the given path.
  * @param filename - Optional path to a config file, 'sprintest.json' used if omited.
- * @returns The config options stored in the file, and its filename if it was found.
+ * @returns A config options object, its filename, and an object specifying which properties were provided/defaulted.
  */
-export function readConfig(filename?: string): Promise<[ConfigOptions, string | undefined]> {
+export function readConfig(filename?: string): Promise<[ConfigOptions, string, ConfigSpec]> {
 	const path = resolve(filename ?? 'sprintest.json');
 
 	return new Promise((resolve, reject) => {
@@ -18,14 +18,26 @@ export function readConfig(filename?: string): Promise<[ConfigOptions, string | 
 				const result = validate(config, schema);
 
 				if (result.valid) {
+					const directoriesProvided = config.directories != null;
+					const matchesProvided = config.matches != null;
 					config.directories ??= defaultConfig.directories;
 					config.matches ??= defaultConfig.matches;
-					resolve([config, filename]);
+					resolve([config, path, {
+						filenameFound: true,
+						filenameProvided: filename != null,
+						directoriesProvided,
+						matchesProvided,
+					}]);
 				} else {
 					reject(result.errors);
 				}
 			} else if (error.code === 'ENOENT' && filename == null) {
-				resolve([defaultConfig, undefined]);
+				resolve([defaultConfig, path, {
+					filenameFound: false,
+					filenameProvided: false,
+					directoriesProvided: false,
+					matchesProvided: false,
+				}]);
 			} else {
 				reject(error);
 			}
@@ -36,6 +48,13 @@ export function readConfig(filename?: string): Promise<[ConfigOptions, string | 
 export interface ConfigOptions {
 	directories: string[];
 	matches: string[];
+}
+
+export interface ConfigSpec {
+	filenameFound: boolean;
+	filenameProvided: boolean;
+	directoriesProvided: boolean;
+	matchesProvided: boolean;
 }
 
 export const defaultConfig: ConfigOptions = {
