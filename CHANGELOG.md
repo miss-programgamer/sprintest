@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.1.1 (future)
+## v0.2.0 (future)
+
+- Added `test` and `suite` as global functions.
+- Added filter argument to the command line.
+- Added output colorization.
+
+## v0.1.1 (2025-03-02)
 
 - Added doc comments, removed unused code.
 - Now filters out non-file entries without throwing.

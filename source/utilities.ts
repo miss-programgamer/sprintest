@@ -1,25 +1,7 @@
 import { readdir, Dirent } from 'node:fs';
-import { sep, resolve as resolve } from 'node:path';
-
-
-/**
- * Prefixes each line of the given text with the given indentation string.
- * @param text - Multiline text to modify.
- * @param indent - Indentation string to use.
- * @returns Newly indented text.
- */
-export function indent(text: string | string[], indent: string = '\t'): string {
-	if (typeof text === 'string') {
-		return text
-			.split('\n')
-			.map(line => `${indent}${line}`)
-			.join('\n');
-	} else {
-		return text
-			.map(line => `${indent}${line}`)
-			.join('\n');
-	}
-}
+import { readFile } from 'node:fs/promises';
+import { findPackageJSON } from 'node:module';
+import { sep, resolve } from 'node:path';
 
 
 /**
@@ -29,6 +11,16 @@ export function indent(text: string | string[], indent: string = '\t'): string {
  */
 export const toPosixPath = (sep === '\\')
 	? (path: string): string => path.replaceAll('\\', '/')
+	: (path: string): string => path;
+
+
+/**
+ * Forces a given path to contain OS-specific path separators.
+ * @param path - A path to potentially convert.
+ * @returns A path with all its separators coerced.
+ */
+export const toOsPath = (sep === '\\')
+	? (path: string): string => path.replaceAll('/', '\\')
 	: (path: string): string => path;
 
 
@@ -55,4 +47,14 @@ export async function* readdirs(root: string, dirs: string[], missing?: (path: s
 			});
 		});
 	}
+}
+
+/**
+ * Read the version from our package.json file and return it.
+ * @returns Our package.json's version field.
+ */
+export async function getVersion(): Promise<string> {
+	const filename = findPackageJSON(import.meta.url)!;
+	const buffer = await readFile(filename);
+	return JSON.parse(buffer.toString()).version;
 }

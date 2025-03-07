@@ -21,24 +21,37 @@ Here's how Sprintest works!
 The command line tool `sprintest` can be invoked thusly:
 
 ```
-usage: sprintest [-c CONFIG]
+usage: sprintest [-c CFG] [-f FLT...]
 
 optional arguments:
-  -c, --config CONFIG   explicitly provide a config file by name
+  -c, --config CFG      explicitly provide a config file by name
+  -f, --filter [FLT...] only run tests that match the given pattern(s)
   -v, --verbose         show more feedback on what sprintest does
   -V, --version         log sprintest's current version, then exit
   -h, --help            show help message, then exit
 ```
 
-If a config file is not explicitly provided, Sprintest will look for one named `sprintest.json` in the current directory and use it to locate your tests.
+If a config file is not explicitly provided, Sprintest will look for one named `sprintest.json` in the current directory. If one does not exist, srpintest will fall back to using default values as explained in [Config File](#config-file).
+
+The value(s) given as filters are [picomatch](https://www.npmjs.com/package/picomatch) glob patterns and get matched against your test and suite names. Note that both suite, test, and subtest names must match at least one of the provided filters to be run.
+
+```cmd
+sprintest -f SomeSuite "some test name"
+```
 
 ## API Usage
 
-Sprintest injects a few functions into the global scope of your tests and provides a type definition file for said functions. The signatures for these functions and the expected format for test callbacks is listed below.
+Sprintest injects a few functions into your tests' global scope and provides type definitions for them. Their signatures and the format of test callbacks functions is documented below. Note that `describe` and `it` are merely aliases of `suite` and `test` respectively.
 
 ```ts
-type SuiteFn = (s: any) => void | Promise<void>;
-type TestFn = (t: any, done: (result?: any) => void) => void | Promise<void>;
+type TestFn = () => void | Promise<void>;
+type SuiteFn = () => void | Promise<void>;
+
+function suite(name?: string, fn?: SuiteFn): Promise<void>;
+function suite(fn?: SuiteFn): Promise<void>;
+
+function test(name?: string, fn?: TestFn): Promise<void>;
+function test(fn?: TestFn): Promise<void>;
 
 function describe(name?: string, fn?: SuiteFn): Promise<void>;
 function describe(fn?: SuiteFn): Promise<void>;
@@ -47,15 +60,23 @@ function it(name?: string, fn?: TestFn): Promise<void>;
 function it(fn?: TestFn): Promise<void>;
 ```
 
-Usage of these mirrors the functions of the same name found in the built-in package [`node:test`](https://nodejs.org/api/test.html).
+Usage of these functions mirrors those with the same name found in the built-in package [`node:test`](https://nodejs.org/api/test.html).
 
 Here is a contrived but working example:
 
 ```ts
 const assert = require('node:assert');
 
+// Using describe/it functions.
 describe('SomeClass', () => {
 	it('should work right', () => {
+		assert(true);
+	});
+});
+
+// Using suite/test functions.
+suite('SomeFunc', () => {
+	test('should work right', () => {
 		assert(true);
 	});
 });
