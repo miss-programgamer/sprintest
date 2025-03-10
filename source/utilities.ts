@@ -48,13 +48,3 @@ export async function* readdirs(root: string, dirs: string[], missing?: (path: s
 		});
 	}
 }
-
-/**
- * Read the version from our package.json file and return it.
- * @returns Our package.json's version field.
- */
-export async function getVersion(): Promise<string> {
-	const filename = findPackageJSON(import.meta.url)!;
-	const buffer = await readFile(filename);
-	return JSON.parse(buffer.toString()).version;
-}

@@ -4,7 +4,7 @@
 
 Sprintest is a unit test runner aiming to remain lightweight by minimizing its dependency count and keeping a small but useful feature set. It can run both JavaScript and TypeScript tests directly and comes pre-configured with reasonable defaults.
 
-It does **not**, however, feature an assertion library, so you'll have to either use the built-in [`node:test`](https://nodejs.org/api/test.html) package, or an external assertion package like [Chai](https://www.chaijs.com).
+It does **not**, however, feature an assertion library, so you'll have to either use the built-in [`node:assert`](https://nodejs.org/api/assert.html) package, or an external assertion package like [Chai](https://www.chaijs.com).
 
 # Table of Contents
 

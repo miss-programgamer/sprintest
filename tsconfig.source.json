@@ -9,8 +9,12 @@
 		"moduleResolution": "nodenext",
 		"esModuleInterop": true,
 		"tsBuildInfoFile": "bin/source.tsbuildinfo",
+		"sourceMap": true
 	},
 	"include": [
 		"source/**/*.ts"
+	],
+	"exclude": [
+		"source/**/*.test.ts"
 	]
 }

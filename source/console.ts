@@ -11,6 +11,9 @@ let console = {
 	warn(scope: string | null, ...args: any[]) {
 		globalConsole.warn(formatScope(scope, ...args));
 	},
+	error(scope: string | null, ...args: any[]) {
+		globalConsole.error(formatScope(scope, ...args));
+	},
 	line() {
 		globalConsole.log();
 	},
@@ -28,6 +31,9 @@ let console = {
 	},
 	styleWarn(text: string): string {
 		return styleText(['yellow'], text);
+	},
+	styleError(text: string): string {
+		return styleText(['underline', 'red'], text);
 	},
 };
 

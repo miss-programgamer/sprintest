@@ -4,58 +4,47 @@ import { relative } from 'node:path/posix';
 import { runInNewContext } from 'node:vm';
 import { cwd } from 'node:process';
 
-import { ArgumentParser } from 'argparse';
-import picomatch, { type Glob } from 'picomatch';
+import { default as picomatch, type Glob } from 'picomatch';
+import { default as Parser, getVersion } from 'mimicli';
 import { build } from 'esbuild';
 
 import { readConfig } from './config.js';
-import { toPosixPath, toOsPath, readdirs, getVersion } from './utilities.js';
-import { default as console } from './console.js';
+import { toPosixPath, toOsPath, readdirs } from './utilities.js';
 import { default as createRuntime } from './runtime.js';
+import { default as console } from './console.js';
 
 
 interface Args {
 	config?: string;
 	filter?: Glob;
 	verbose: number;
+	dest: string;
 }
 
 
-const parser = new ArgumentParser({
+const parser = new Parser<Args>({
 	usage: 'sprintest [-c CONFIG] [-f FILTER...]',
-	description: 'Run your tests, no more no less!',
-	add_help: false,
+	desc: 'Run your tests, no more no less!',
+	version: await getVersion(import.meta.url),
+	error: 'exit',
 });
 
-parser.add_argument('-c', '--config', {
-	required: false,
+parser.handle(['-c', '--config'], {
 	help: 'explicitly provide a config file by name',
+	action: { type: 'value' },
 });
 
-parser.add_argument('-f', '--filter', {
-	action: 'extend', nargs: '+',
+parser.handle(['-f', '--filter'], {
 	help: 'only run tests that match the given pattern(s)',
+	action: { type: 'value', count: '+' },
 });
 
-parser.add_argument('-v', '--verbose', {
-	action: 'count',
+parser.handle(['-v', '--verbose'], {
 	help: 'show more feedback on what sprintest does',
+	action: { type: 'count' },
 });
 
-parser.add_argument('-V', '--version', {
-	action: 'version', version: await getVersion(),
-	help: 'log sprintest\'s current version, then exit',
-});
-
-parser.add_argument('-h', '--help', {
-	action: 'help', help: 'show help message, then exit',
-});
-
-const args: Args = parser.parse_args();
-
-if (args.filter?.length === 1) {
-	args.filter = args.filter[0];
-}
+const args = parser.parse();
 
 
 const [config, configFilename, spec] = await readConfig(args.config);

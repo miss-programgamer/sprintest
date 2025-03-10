@@ -1,8 +1,8 @@
 {
 	"name": "sprintest",
-	"version": "0.2.0",
 	"displayName": "Sprintest",
-	"type": "module",
+	"description": "Run your tests, no more no less!",
+	"version": "0.2.0",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/miss-programgamer/sprintest.git"
@@ -11,6 +11,7 @@
 		"test",
 		"testing"
 	],
+	"type": "module",
 	"types": "index.d.ts",
 	"main": "bin/index.js",
 	"bin": {
@@ -23,20 +24,22 @@
 	"scripts": {
 		"build": "tsc -b",
 		"watch": "tsc -b --watch",
+		"clean": "tsc -b --clean",
+		"test": "sprintest",
 		"prepublishOnly": "npm run build"
 	},
 	"devDependencies": {
 		"@types/argparse": "^2.0.17",
 		"@types/chai": "^5.0.1",
-		"@types/node": "^22.13.5",
+		"@types/node": "^22.13.10",
 		"@types/picomatch": "^3.0.2",
 		"chai": "^5.2.0",
-		"typescript": "^5.7.3"
+		"typescript": "5.8"
 	},
 	"dependencies": {
-		"argparse": "^2.0.1",
 		"esbuild": "^0.25.0",
 		"jsonschema": "^1.5.0",
+		"mimicli": "^0.1.0",
 		"picomatch": "^4.0.2"
 	}
 }

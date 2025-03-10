@@ -11,9 +11,15 @@
 		]
 	},
 	"include": [
-		"tests/**/*.ts"
+		"tests/**/*.ts",
+		"source/**/*.test.ts"
 	],
 	"files": [
 		"index.d.ts"
+	],
+	"references": [
+		{
+			"path": "./tsconfig.source.json"
+		}
 	]
 }

@@ -5,6 +5,7 @@
 - Added `test` and `suite` as global functions.
 - Added filter argument to the command line.
 - Added output colorization.
+- Replaced `argparse` dependency with `mimicli`.
 
 ## v0.1.1 (2025-03-02)
 
